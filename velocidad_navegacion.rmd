@@ -1,0 +1,114 @@
+# Análisis de Velocidad de descarga
+
+Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
+
+Las librerías utilizadas son las siguientes
+```{r, eval=FALSE}
+library('ggplot2') 	# Librería para la generación de gráficos
+library('plyr') 	# Librería para combinar, separar, y aplicar funciones sobre dataframes
+library('forecast')	# Librería para generar modelos predictivos
+```
+
+Se requiere fijar la localización de tiempo para Chile, a fin de que la agrupación por días de la semana aparezca es español
+```{r}
+Sys.setlocale("LC_TIME", "es_CL.UTF-8")
+```
+
+
+```{r, echo=FALSE}
+library('ggplot2')
+library('plyr')
+library('forecast')
+
+
+############### Funciones
+# Transforma todos los valores a MB/s
+cambia_unidad <- function(df){
+	datakbs <- subset(df, Unidad == 'KB/s', select=c(Fecha, Valor))
+	datambs <- subset(df, Unidad == 'MB/s', select=c(Fecha, Valor))
+	datakbs$Valor <- datakbs$Valor / 1024
+
+		return(rbind(datakbs, datambs))
+}
+
+# Agrega día de la semana a dataframe a partir de una fecha posix
+dow <- function(df, fecha){
+	days = c('lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo')
+	df$DOW <- factor(weekdays.POSIXt(fecha), levels = days)
+	return(df)
+}
+
+
+############### Transformación de datos
+# Carga el archivo de datos como un dataframe
+data <- read.table('test-velocidad.csv', sep=',', header=FALSE, col.names=c('Fecha', 'Valor', 'Unidad'))
+
+# Formatea datos
+data$Fecha <- as.POSIXct(strptime(data$Fecha, format="%Y-%m-%d %H:%M:%S"))
+data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
+
+# Selecciona datos de este año
+# data <- subset(data, Fecha >= "2016-01-01")
+data <- data[data$Fecha >= "2016-01-01",]
+
+# Transforma KB/s a MB/s y todo a Mbps
+data <- cambia_unidad(data)
+
+# Transforma de MBps a Mbps
+data$Valor <- data$Valor * 8
+
+# Agrega día de la semana
+data <- dow(data, data$Fecha)
+
+# Agrupar por hora
+data$Hora <- factor(format(data$Fecha, "%H"))
+hour_data <- ddply(data, .(DOW, Hora), summarise, Valor = mean(Valor))
+
+# Agrupar por día
+day_data <- ddply(data, .(DOW), summarise, Valor = mean(Valor))
+
+# elimina outliers -> validar si son outliers
+# data <- data[data$Valor > 15 & data$Valor < 55 ,]
+```
+
+## Estadísticas descriptivas
+
+```{r}
+summary(data$Valor)
+quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1))
+```
+
+## Gráficos
+
+### Serie de Tiempo
+
+Se incluyen mediciones desde el 01-01-2016 a la fecha 
+```{r, echo=FALSE}
+plot <- ggplot(data, aes(Fecha, Valor, color=DOW)) + geom_point()
+plot <- plot + xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")
+plot <- plot + labs(color="Día de la semana") + theme(legend.position="bottom")
+print(plot)
+```
+
+### Histograma
+```{r, echo=FALSE}
+plot <- ggplot(data, aes(x=Valor)) + geom_histogram(binwidth=1)
+plot <- plot + xlab("Velocidad de descarga [Mbps]") + ylab("Frecuencia")
+# plot <- plot + facet_grid(DOW ~ .)
+print(plot)
+```
+
+### Promedio de descarga por día
+```{r, echo=FALSE}
+plot <- ggplot(day_data, aes(x=DOW, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
+plot <- plot + ylab("Velocidad de descarga [Mbps]") + xlab("Día de la semana")
+print(plot)
+```
+
+### Promedios por hora y dia
+```{r, echo=FALSE}
+plot <- ggplot(hour_data, aes(x=Hora, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
+plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
+plot <- plot + facet_grid(DOW ~ .)
+print(plot)
+```
