@@ -2,12 +2,14 @@
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
 
-Las librerías utilizadas son las siguientes
+Las bibliotecas utilizadas son las siguientes
 ```{r, eval=FALSE}
-library('ggplot2') 	# Librería para la generación de gráficos
-library('plyr') 	# Librería para combinar, separar, y aplicar funciones sobre dataframes
-library('forecast')	# Librería para generar modelos predictivos
+library('ggplot2') 	# Biblioteca para la generación de gráficos
+library('plyr') 	# Biblioteca para combinar, separar, y aplicar funciones sobre dataframes
+library('forecast')	# Biblioteca para generar modelos predictivos
 ```
+
+## Preparación de datos
 
 Se requiere fijar la localización de tiempo para Chile, a fin de que la agrupación por días de la semana aparezca es español
 ```{r}
@@ -48,7 +50,6 @@ data$Fecha <- as.POSIXct(strptime(data$Fecha, format="%Y-%m-%d %H:%M:%S"))
 data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
 
 # Selecciona datos de este año
-# data <- subset(data, Fecha >= "2016-01-01")
 data <- data[data$Fecha >= "2016-01-01",]
 
 # Transforma KB/s a MB/s y todo a Mbps
@@ -75,7 +76,7 @@ day_data <- ddply(data, .(DOW), summarise, Valor = mean(Valor))
 
 ```{r}
 summary(data$Valor)
-quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1))
+knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 ```
 
 ## Gráficos
