@@ -6,22 +6,14 @@ Las bibliotecas utilizadas son las siguientes
 ```{r, eval=FALSE}
 library('ggplot2') 	# Biblioteca para la generación de gráficos
 library('plyr') 	# Biblioteca para combinar, separar, y aplicar funciones sobre dataframes
-library('forecast')	# Biblioteca para generar modelos predictivos
 library('tsfactors')	# Biblioteca creada por mi para la agrupación de datos de series de tiempo
 ```
 
 ## Preparación de datos
 
-Se requiere fijar la localización de tiempo para Chile, a fin de que la agrupación por días de la semana aparezca es español
-```{r}
-Sys.setlocale("LC_TIME", "es_CL.UTF-8")
-```
-
-
 ```{r, echo=FALSE}
 library('ggplot2')
 library('plyr')
-library('forecast')
 library('tsfactors')
 
 ############### Funciones
@@ -39,7 +31,7 @@ cambia_unidad <- function(df){
 data <- read.table('test-velocidad.csv', sep=',', header=FALSE, col.names=c('Fecha', 'Valor', 'Unidad'))
 
 # Formatea datos
-data$Fecha <- as.POSIXct(strptime(data$Fecha, format="%Y-%m-%d %H:%M:%S"))
+data$Fecha <- toPOSIX(data$Fecha)
 data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
 
 # Selecciona datos de este año
@@ -55,7 +47,7 @@ data$Valor <- data$Valor * 8
 data$DOW <- dow(data$Fecha)
 
 # Agrupar por hora
-data$Hora <- factor(format(data$Fecha, "%H"))
+data$Hora <- hour(data$Fecha)
 hour_data <- ddply(data, .(DOW, Hora), summarise, Valor = mean(Valor))
 
 # Agrupar por día
