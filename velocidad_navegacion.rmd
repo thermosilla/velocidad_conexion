@@ -7,6 +7,7 @@ Las bibliotecas utilizadas son las siguientes
 library('ggplot2') 	# Biblioteca para la generación de gráficos
 library('plyr') 	# Biblioteca para combinar, separar, y aplicar funciones sobre dataframes
 library('forecast')	# Biblioteca para generar modelos predictivos
+library('tsfactors')	# Biblioteca creada por mi para la agrupación de datos de series de tiempo
 ```
 
 ## Preparación de datos
@@ -21,7 +22,7 @@ Sys.setlocale("LC_TIME", "es_CL.UTF-8")
 library('ggplot2')
 library('plyr')
 library('forecast')
-
+library('tsfactors')
 
 ############### Funciones
 # Transforma todos los valores a MB/s
@@ -30,16 +31,8 @@ cambia_unidad <- function(df){
 	datambs <- subset(df, Unidad == 'MB/s', select=c(Fecha, Valor))
 	datakbs$Valor <- datakbs$Valor / 1024
 
-		return(rbind(datakbs, datambs))
+	return(rbind(datakbs, datambs))
 }
-
-# Agrega día de la semana a dataframe a partir de una fecha posix
-dow <- function(df, fecha){
-	days = c('lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo')
-	df$DOW <- factor(weekdays.POSIXt(fecha), levels = days)
-	return(df)
-}
-
 
 ############### Transformación de datos
 # Carga el archivo de datos como un dataframe
@@ -59,7 +52,7 @@ data <- cambia_unidad(data)
 data$Valor <- data$Valor * 8
 
 # Agrega día de la semana
-data <- dow(data, data$Fecha)
+data$DOW <- dow(data$Fecha)
 
 # Agrupar por hora
 data$Hora <- factor(format(data$Fecha, "%H"))
