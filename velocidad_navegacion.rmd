@@ -2,6 +2,8 @@
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
 
+A partir del 21 de mayo de 2016 a las 22:00, se utiliza un archivo de 100MB para probar la descarga.
+
 Las bibliotecas utilizadas son las siguientes
 ```{r, eval=FALSE}
 library('ggplot2') 	# Biblioteca para la generación de gráficos
@@ -68,7 +70,7 @@ knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 
 ### Serie de Tiempo
 
-Se incluyen mediciones desde el 01-01-2016 a la fecha 
+Se incluyen mediciones desde el _01-01-2016_ a la fecha 
 ```{r, echo=FALSE}
 plot <- ggplot(data, aes(Fecha, Valor, color=DOW)) + geom_point()
 plot <- plot + xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")
@@ -93,8 +95,8 @@ print(plot)
 
 ### Promedios por hora y dia
 ```{r, echo=FALSE}
-plot <- ggplot(hour_data, aes(x=Hora, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
-plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
-plot <- plot + facet_grid(DOW ~ .)
-print(plot)
+#plot <- ggplot(hour_data, aes(x=Hora, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
+#plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
+#plot <- plot + facet_grid(DOW ~ .)
+#print(plot)
 ```
