@@ -2,16 +2,12 @@
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
 
-A partir del 21 de mayo de 2016 a las 22:00, se utiliza un archivo de 100MB para probar la descarga.
-
 Las bibliotecas utilizadas son las siguientes
 ```{r, eval=FALSE}
 library('ggplot2') 	# Biblioteca para la generación de gráficos
 library('plyr') 	# Biblioteca para combinar, separar, y aplicar funciones sobre dataframes
 library('tsfactors')	# Biblioteca creada por mi para la agrupación de datos de series de tiempo
 ```
-
-## Preparación de datos
 
 ```{r, echo=FALSE}
 library('ggplot2')
@@ -86,17 +82,17 @@ plot <- plot + xlab("Velocidad de descarga [Mbps]") + ylab("Frecuencia")
 print(plot)
 ```
 
-### Promedio de descarga por día
+### Variación de descarga por día
 ```{r, echo=FALSE}
-plot <- ggplot(day_data, aes(x=DOW, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
+plot <- ggplot(data, aes(x=DOW, y=Valor)) + geom_boxplot(outlier.size=0) 
 plot <- plot + ylab("Velocidad de descarga [Mbps]") + xlab("Día de la semana")
 print(plot)
 ```
 
-### Promedios por hora y dia
+### Variación de descarga por hora del día
 ```{r, echo=FALSE}
-#plot <- ggplot(hour_data, aes(x=Hora, y=Valor)) + geom_bar(stat = 'identity') + geom_hline(yintercept=40)
-#plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
-#plot <- plot + facet_grid(DOW ~ .)
-#print(plot)
+plot <- ggplot(data, aes(x=Hora, y=Valor)) + geom_boxplot(outlier.size=0)
+plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
+# plot <- plot + facet_grid(DOW ~ .)
+print(plot)
 ```
