@@ -2,17 +2,13 @@
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
 
-Las bibliotecas utilizadas son las siguientes
-```{r, eval=FALSE}
-library('ggplot2') 	# Biblioteca para la generación de gráficos
-library('plyr') 	# Biblioteca para combinar, separar, y aplicar funciones sobre dataframes
-library('tsfactors')	# Biblioteca creada por mi para la agrupación de datos de series de tiempo
-```
+Código en [github](https://github.com/thermosilla/velocidad_conexion)
+
+Explicación del análisis en esta [entrada de blog](http://blog.thermosilla.info/speedtest.html)
 
 ```{r, echo=FALSE}
-library('ggplot2')
-library('plyr')
-library('tsfactors')
+library('ggplot2')	# Biblioteca para la generación de gráficos
+library('tsfactors') 	# Biblioteca creada por mi para facilitar el análisis de series de tiempo
 
 ############### Funciones
 # Transforma todos los valores a MB/s
@@ -33,7 +29,7 @@ data$Fecha <- toPOSIX(data$Fecha)
 data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
 
 # Selecciona datos de este año
-data <- data[data$Fecha >= "2016-01-01",]
+data <- data[data$Fecha >= "2016-07-01",]
 
 # Transforma KB/s a MB/s y todo a Mbps
 data <- cambia_unidad(data)
@@ -43,13 +39,7 @@ data$Valor <- data$Valor * 8
 
 # Agrega día de la semana
 data$DOW <- dow(data$Fecha)
-
-# Agrupar por hora
 data$Hora <- hour(data$Fecha)
-hour_data <- ddply(data, .(DOW, Hora), summarise, Valor = mean(Valor))
-
-# Agrupar por día
-day_data <- ddply(data, .(DOW), summarise, Valor = mean(Valor))
 
 # elimina outliers -> validar si son outliers
 # data <- data[data$Valor > 15 & data$Valor < 55 ,]
@@ -66,7 +56,7 @@ knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 
 ### Serie de Tiempo
 
-Se incluyen mediciones desde el _01-01-2016_ a la fecha 
+Se incluyen mediciones desde el _01-07-2016_ a la fecha 
 ```{r, echo=FALSE}
 plot <- ggplot(data, aes(Fecha, Valor, color=DOW)) + geom_point()
 plot <- plot + xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")
@@ -85,7 +75,7 @@ print(plot)
 ### Variación de descarga por día
 ```{r, echo=FALSE}
 plot <- ggplot(data, aes(x=DOW, y=Valor)) + geom_boxplot(outlier.size=0) 
-plot <- plot + ylab("Velocidad de descarga [Mbps]") + xlab("Día de la semana")
+plot <- plot + ylab("velocidad de descarga [mbps]") + xlab("día de la semana")
 print(plot)
 ```
 
