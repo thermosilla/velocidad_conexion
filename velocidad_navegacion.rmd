@@ -29,7 +29,7 @@ data$Fecha <- toPOSIX(data$Fecha)
 data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
 
 # Selecciona datos de este año
-data <- data[data$Fecha >= "2017-01-01",]
+data <- data[data$Fecha >= "2017-07-01",]
 
 # Transforma KB/s a MB/s y todo a Mbps
 data <- cambia_unidad(data)
@@ -56,7 +56,7 @@ knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 
 ### Serie de Tiempo
 
-Se incluyen mediciones desde el _01-01-2017_ a la fecha
+Se incluyen mediciones desde el _01-07-2017_ a la fecha
 ```{r, echo=FALSE}
 plot <- ggplot(data, aes(Fecha, Valor, color=DOW)) + geom_point()
 plot <- plot + xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")
