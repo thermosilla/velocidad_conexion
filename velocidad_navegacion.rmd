@@ -1,5 +1,5 @@
 ---
-title: "Análisis de Velocidad de descarga"
+title: "Análisis de Velocidad de Descarga"
 ---
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
