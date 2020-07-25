@@ -1,4 +1,6 @@
-# Análisis de Velocidad de descarga
+---
+title: "Análisis de Velocidad de descarga"
+---
 
 Para analizar el comportamiento de mi velocidad de conexión a internet, he utilizado R, un lenguaje estadístico altamente difundido en el último tiempo.
 
@@ -7,47 +9,31 @@ Código en [github](https://github.com/thermosilla/velocidad_conexion)
 Explicación del análisis en esta [entrada de blog](http://blog.thermosilla.info/speedtest.html)
 
 ```{r, echo=FALSE}
-library('ggplot2')	# Biblioteca para la generación de gráficos
+library('dplyr')
+library('tidyr')
+library('ggplot2')		# Biblioteca para la generación de gráficos
 library('tsfactors') 	# Biblioteca creada por mi para facilitar el análisis de series de tiempo
 
-############### Funciones
-# Transforma todos los valores a MB/s
-cambia_unidad <- function(df){
-	datakbs <- subset(df, Unidad == 'KB/s', select=c(Fecha, Valor))
-	datambs <- subset(df, Unidad == 'MB/s', select=c(Fecha, Valor))
-	datakbs$Valor <- datakbs$Valor / 1024
-
-	return(rbind(datakbs, datambs))
-}
 
 ############### Transformación de datos
 # Carga el archivo de datos como un dataframe
 data <- read.table('test-velocidad.csv', sep=',', header=FALSE, col.names=c('Fecha', 'Valor', 'Unidad'))
 
-# Formatea datos
-data$Fecha <- toPOSIX(data$Fecha)
-data$Unidad <- as.factor(trimws(as.character(data$Unidad)))
+data <- data %>%
+	mutate(Fecha = toPOSIX(Fecha)) %>%
+	mutate(DOW = dow(Fecha)) %>%
+	mutate(Unidad = as.factor(trimws(as.character(data$Unidad)))) %>%
+	mutate(Hora = hour(Fecha)) %>%
+	mutate(Valor = ifelse(Unidad == 'KB/s', Valor/1024*8, Valor*8)) %>%
+	select(Fecha, Valor, DOW, Hora) %>%
+	filter(Fecha >= '2019-11-01' )
 
-# Selecciona datos de este año
-data <- data[data$Fecha >= "2019-01-01",]
-
-# Transforma KB/s a MB/s y todo a Mbps
-data <- cambia_unidad(data)
-
-# Transforma de MBps a Mbps
-data$Valor <- data$Valor * 8
-
-# Agrega día de la semana
-data$DOW <- dow(data$Fecha)
-data$Hora <- hour(data$Fecha)
-
-# elimina outliers -> validar si son outliers
-# data <- data[data$Valor > 15 & data$Valor < 55 ,]
 ```
 
 ## Estadísticas descriptivas
 
 ```{r}
+summary(data)
 summary(data$Valor)
 knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 ```
@@ -56,33 +42,36 @@ knitr::kable(quantile(data$Valor, c(.1,.2,.3,.4,.5,.6,.7,.8,.9,1)))
 
 ### Serie de Tiempo
 
-Se incluyen mediciones desde el _01-01-2019_ a la fecha
+Se incluyen mediciones desde el _01-11-2019_ a la fecha
 ```{r, echo=FALSE}
-plot <- ggplot(data, aes(Fecha, Valor, color=DOW)) + geom_point()
-plot <- plot + xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")
-plot <- plot + labs(color="Día de la semana") + theme(legend.position="bottom")
-print(plot)
+
+data %>%
+	ggplot(aes(Fecha, Valor, color=DOW)) + geom_point() +
+	xlab("Fecha") + ylab("Velocidad de descarga [Mbps]")+
+	labs(color="Día de la semana") + theme_minimal()+
+	theme(legend.position="bottom")
 ```
 
 ### Histograma
 ```{r, echo=FALSE}
-plot <- ggplot(data, aes(x=Valor)) + geom_histogram(binwidth=1)
-plot <- plot + xlab("Velocidad de descarga [Mbps]") + ylab("Frecuencia")
-# plot <- plot + facet_grid(DOW ~ .)
-print(plot)
+data %>%
+	ggplot(aes(x=Valor)) + geom_histogram(binwidth=1)+
+	xlab("Velocidad de descarga [Mbps]") + ylab("Frecuencia")+
+	theme_minimal()
 ```
 
 ### Variación de descarga por día
 ```{r, echo=FALSE}
-plot <- ggplot(data, aes(x=DOW, y=Valor)) + geom_boxplot(outlier.size=0) 
-plot <- plot + ylab("velocidad de descarga [mbps]") + xlab("día de la semana")
-print(plot)
+data %>%
+	ggplot(aes(x=DOW, y=Valor)) + geom_boxplot(outlier.size=0)+
+	ylab("velocidad de descarga [mbps]") + xlab("día de la semana")+
+	theme_minimal()
 ```
 
 ### Variación de descarga por hora del día
 ```{r, echo=FALSE}
-plot <- ggplot(data, aes(x=Hora, y=Valor)) + geom_boxplot(outlier.size=0)
-plot <- plot + ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")
-# plot <- plot + facet_grid(DOW ~ .)
-print(plot)
+data %>%
+	ggplot(aes(x=Hora, y=Valor)) + geom_boxplot(outlier.size=0)+
+	ylab("Velocidad de descarga [Mbps]\n") + xlab("\nHora del Día")+
+	theme_minimal()
 ```
