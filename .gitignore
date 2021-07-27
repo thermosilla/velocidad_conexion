@@ -3,3 +3,6 @@
 *.png
 *.html
 *.ipynb*
+Pipfile*
+*.env
+*.ini
